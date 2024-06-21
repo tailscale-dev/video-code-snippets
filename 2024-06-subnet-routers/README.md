@@ -2,7 +2,7 @@
 
 This readme accompanies our YouTube video about subnet routers.
 
-[![Subnet Routers | Tailscale Explained](https://img.youtube.com/vi/Btqw56DFhro/maxresdefault.jpg)](https://www.youtube.com/embed/Btqw56DFhro?si=uZ8JDu488OEmJjMJ)
+[![Subnet Routers | Tailscale Explained](https://img.youtube.com/vi/UmVMaymH1-s/maxresdefault.jpg)](https://www.youtube.com/watch?v=UmVMaymH1-s)
 
 ## ACL snippet for autoApprovers
 
