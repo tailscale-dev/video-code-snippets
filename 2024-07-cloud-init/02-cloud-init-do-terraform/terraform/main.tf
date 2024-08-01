@@ -8,6 +8,7 @@ terraform {
 }
 
 variable "do_token" {}
+variable "tailscale_auth_key" {}
 
 provider "digitalocean" {
   token = var.do_token
@@ -19,5 +20,5 @@ resource "digitalocean_droplet" "droplet" {
   region    = "nyc1"
   size      = "s-1vcpu-1gb"
   ssh_keys  = [41743189]
-  user_data = file("digitalocean.yaml")
+  user_data = templatefile("digitalocean.tftpl", {tailscale_auth_key = var.tailscale_auth_key})
 }
