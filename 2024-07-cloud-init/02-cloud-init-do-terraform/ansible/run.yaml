@@ -1,0 +1,6 @@
+---
+  - hosts: nyc1-terraform-caddy
+    vars_files:
+      - 'vars/secrets.yaml'
+    roles:
+      - ironicbadger.caddy

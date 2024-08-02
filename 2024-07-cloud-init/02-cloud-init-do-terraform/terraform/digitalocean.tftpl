@@ -1,0 +1,16 @@
+#cloud-config
+ssh_pwauth: false
+users:
+- name: zaphod
+  gecos: Ansible User
+  groups: users,admin,wheel
+  sudo: ALL=(ALL) NOPASSWD:ALL
+  shell: /bin/bash
+  lock_passwd: true
+
+runcmd:
+  - curl -fsSL https://tailscale.com/install.sh | sh
+  - ['sh', '-c', "echo 'net.ipv4.ip_forward = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf && echo 'net.ipv6.conf.all.forwarding = 1' | sudo tee -a /etc/sysctl.d/99-tailscale.conf && sudo sysctl -p /etc/sysctl.d/99-tailscale.conf" ]
+  - tailscale up --ssh --accept-routes --authkey=${tailscale_auth_key}
+  #- tailscale set --ssh --advertise-exit-node
+  - curl -fsSL https://get.docker.com | sh
