@@ -20,4 +20,4 @@ reqs *FORCE:
 
 # ansible vault (encrypt/decrypt/edit)
 vault ACTION:
-    EDITOR='code --wait' ansible-vault {{ACTION}} ansible/vars/secrets.yaml
+    cd ansible && EDITOR='code --wait' ansible-vault {{ACTION}} vars/secrets.yaml
