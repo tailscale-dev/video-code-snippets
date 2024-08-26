@@ -4,15 +4,16 @@ caddy_tls_providers:
   - provider: cloudflare
     challenge_type: dns
     provider_api_token: "{{ cloudflare_api_token }}"
+    resolver_ip: 1.1.1.1
 
 caddy_endpoints:
-  - friendly_name: test
-    fqdn: test.initechvideo.dev
-    upstream: "1.2.3.4:8080"
-    tls_insecure: true
+  - friendly_name: jf
+    fqdn: jf.initechlabs.dev
+    upstream: "fakenas:2285"
+    tls_insecure: false
     tls_provider: cloudflare
-  - friendly_name: test2
-    fqdn: test2.initechvideo.dev
-    upstream: "1.2.3.4:8080"
-    tls_insecure: true
-    tls_provider: cloudflare
+  # - friendly_name: test2
+  #   fqdn: test2.initechlabs.dev
+  #   upstream: "1.2.3.4:8080"
+  #   tls_insecure: true
+  #   tls_provider: cloudflare

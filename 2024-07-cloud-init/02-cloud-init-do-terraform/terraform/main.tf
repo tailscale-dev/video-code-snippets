@@ -20,6 +20,6 @@ resource "digitalocean_droplet" "droplet" {
   region    = "nyc1"
   size      = "s-1vcpu-1gb"
   # doctl -t dop_v1_token compute ssh-key list
-  ssh_keys  = [41743189]
+  ssh_keys  = [42950830]
   user_data = templatefile("digitalocean.tftpl", { tailscale_auth_key = var.tailscale_auth_key })
 }
