@@ -3,6 +3,9 @@
 #   like a script, with `./justfile test`, for example.
 
 ## terraform stuff
+init:
+  cd terraform && terraform init
+
 apply:
   cd terraform && terraform apply
 
