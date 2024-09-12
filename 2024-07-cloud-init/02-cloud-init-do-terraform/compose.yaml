@@ -1,0 +1,16 @@
+services:
+  jellyfin:
+    image: jellyfin/jellyfin
+    container_name: jellyfin
+    volumes:
+      - /mnt/appdata/mediaservers/jellyfin:/config
+      - /mnt/jbod:/mnt/jbod
+    ports:
+      - 2285:8096
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+      - JELLYFIN_PublishedServerUrl=jf.initech.video
+    hostname: us-rdu
+    restart: unless-stopped
