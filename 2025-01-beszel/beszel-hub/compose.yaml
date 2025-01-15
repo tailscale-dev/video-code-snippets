@@ -1,0 +1,24 @@
+services:
+  ts-beszel-hub:
+    image: tailscale/tailscale:latest
+    container_name: ts-beszel-hub
+    hostname: beszel
+    environment:
+      - TS_AUTHKEY=tskey-client-not-a-real-token-Hsi1
+      - TS_EXTRA_ARGS=--advertise-tags=tag:beszel
+      - TS_SERVE_CONFIG=/config/beszel-hub.json
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=true
+    volumes:
+      - ${PWD}/beszel-hub/tailscale/state:/var/lib/tailscale
+      - ${PWD}/beszel-hub/tailscale/config:/config
+    restart: unless-stopped
+  beszel:
+    image: henrygd/beszel:latest
+    container_name: beszel-hub
+    network_mode: service:ts-beszel-hub
+    depends_on:
+      - ts-beszel-hub
+    volumes:
+      - ${PWD}/beszel-hub/beszel_data:/beszel_data
+    restart: unless-stopped
