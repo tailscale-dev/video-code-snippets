@@ -4,7 +4,7 @@ services:
     container_name: ts-beszel-hub
     hostname: beszel
     environment:
-      - TS_AUTHKEY=tskey-auth-kgCQssTVq621CNTRL-nkNZdK7vUu11BgZrB5DAv1y1b2d7c1Ci
+      - TS_AUTHKEY=tskey-auth-ktuWjtUz9P11CNTRL-bv3C2GK8w7V8wyNeQQ5Q7VVfkXB5y4Za
       - TS_EXTRA_ARGS=--advertise-tags=tag:beszel
       - TS_SERVE_CONFIG=/config/beszel-hub.json
       - TS_STATE_DIR=/var/lib/tailscale
