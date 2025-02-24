@@ -50,7 +50,7 @@
   services.ollama = {
     enable = true;
     host = "0.0.0.0";
-  }
+  };
 
   # userland
   #home-manager.useGlobalPkgs = true;
