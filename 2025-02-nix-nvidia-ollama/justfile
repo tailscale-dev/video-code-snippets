@@ -7,6 +7,7 @@ sub-update:
 ## nix installation
 
 ## nix updates
+hostname := `hostname | cut -d "." -f 1`
 [linux]
 switch target_host=hostname:
   sudo nixos-rebuild switch --flake .#{{target_host}}
