@@ -18,8 +18,6 @@
         ../hosts/nixos/${hostname}
         ../hosts/common/nixos-common.nix
 
-        #inputs.disko.nixosModules.disko
-
       ] ++ extraModules;
     };
 
