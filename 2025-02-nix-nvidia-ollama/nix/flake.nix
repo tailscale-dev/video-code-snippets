@@ -14,7 +14,7 @@
       stateVersion = "24.11";
       libx = import ./lib {
         inherit inputs outputs stateVersion;
-        allowUnfree = true;
+        nixpkgs.config.allowUnfree = true;
       };
 
     in {
