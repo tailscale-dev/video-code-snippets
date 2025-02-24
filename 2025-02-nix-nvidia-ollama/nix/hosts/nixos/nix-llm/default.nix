@@ -43,7 +43,7 @@
   services.openssh = {
     enable = true;
     settings.PasswordAuthentication = true;
-    settings.PermitRootLogin = true;
+    settings.PermitRootLogin = "yes";
   };
   services.qemuGuest.enable = true;
   services.tailscale.enable = true;
