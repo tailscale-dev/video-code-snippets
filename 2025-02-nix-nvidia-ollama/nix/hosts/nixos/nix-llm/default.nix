@@ -1,4 +1,4 @@
-{ config, inputs, pkgs, name, ... }:
+{ config, inputs, pkgs, name, lib, ... }:
 
 {
   imports =
@@ -66,7 +66,7 @@
   };
 
   # System packages configuration
-  nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.allowUnfree = lib.mkForce true;
   environment.systemPackages = with pkgs; [
     ansible
     colmena
