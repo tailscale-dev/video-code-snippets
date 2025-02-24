@@ -12,7 +12,10 @@
     let
       inherit (self) outputs;
       stateVersion = "24.11";
-      libx = import ./lib { inherit inputs outputs stateVersion; };
+      libx = import ./lib {
+        inherit inputs outputs stateVersion;
+        allowUnfree = true;
+      };
 
     in {
 
