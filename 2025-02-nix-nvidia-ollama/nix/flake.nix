@@ -12,7 +12,7 @@
     let
       inherit (self) outputs;
       stateVersion = "24.11";
-      pkgs = system: import nixpkgs { inherit system; config.allowUnfree = true; };
+      #pkgs = system: import nixpkgs { inherit system; config.allowUnfree = true; };
       libx = import ./lib { inherit inputs outputs stateVersion pkgs; };
 
     in {

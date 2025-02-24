@@ -3,8 +3,14 @@
 {
   mkNixos = { system, hostname, username, extraModules ? [] }:
     let
-      pkgs = inputs.nixpkgs.legacyPackages.${system};
-      unstablePkgs = inputs.nixpkgs-unstable.legacyPackages.${system};
+      pkgs = import inputs.nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+      };
+      unstablePkgs = import inputs.nixpkgs-unstable {
+        inherit system;
+        config.allowUnfree = true;
+      };
     in
     inputs.nixpkgs.lib.nixosSystem {
       inherit system;
