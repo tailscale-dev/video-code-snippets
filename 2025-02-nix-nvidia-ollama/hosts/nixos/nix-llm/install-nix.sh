@@ -15,4 +15,5 @@ nixos-generate-config --no-filesystems --root /mnt
 
 # installation
 export NIXPKGS_ALLOW_UNFREE=1
+cp hardware-configuration.nix /mnt/etc/nixos/
 nixos-install --root /mnt --flake .#nix-llm --impure
