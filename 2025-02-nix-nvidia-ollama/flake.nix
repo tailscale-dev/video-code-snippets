@@ -17,8 +17,12 @@
     in {
 
       nixosConfigurations = {
-        nix-llm = libx.mkNixos { "x86_64-linux"; "nix-llm"; "zaphod"; };
-      }
+        nix-llm = libx.mkNixos {
+          system = "x86_64-linux";
+          hostname = "nix-llm";
+          username = "zaphod";
+        };
+      };
 
    };
 }
