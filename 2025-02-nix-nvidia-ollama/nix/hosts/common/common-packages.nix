@@ -27,6 +27,8 @@ in
     fira-code-nerdfont
     fira-mono
     gh
+    git
+    htop
     git-crypt
     gnused
     go
@@ -52,6 +54,7 @@ in
     watch
     wget
     wireguard-tools
+    vim
     zoxide
 
     # requires nixpkgs.config.allowUnfree = true;

@@ -10,7 +10,7 @@ sub-update:
 hostname := `hostname | cut -d "." -f 1`
 [linux]
 switch target_host=hostname:
-  sudo nixos-rebuild switch --flake .#{{target_host}}
+  cd nix && sudo nixos-rebuild switch --flake .#{{target_host}}
 
 ## copy docker compose yaml to remote host via Ansible
 compose HOST *V:
