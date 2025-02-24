@@ -14,6 +14,7 @@
             ESP = {
               size = "512M";
               type = "EF00";
+              name = "disk-main-ESP";
               content = {
                 type = "filesystem";
                 format = "vfat";
@@ -23,6 +24,7 @@
             };
             root = {
               size = "100%";
+              name = "disk-main-root";
               content = {
                 type = "filesystem";
                 format = "ext4";
