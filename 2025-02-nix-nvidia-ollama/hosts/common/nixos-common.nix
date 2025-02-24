@@ -1,10 +1,10 @@
-{ pkgs, unstablePkgs, lib, inputs, stateVersion, ... }:
+{ pkgs, unstablePkgs, lib, inputs, ... }:
 let
   inherit (inputs) nixpkgs nixpkgs-unstable;
 in
 {
   time.timeZone = "America/New_York";
-  system.stateVersion = stateVersion;
+  system.stateVersion = "24.11";
 
   virtualisation = {
     docker = {
