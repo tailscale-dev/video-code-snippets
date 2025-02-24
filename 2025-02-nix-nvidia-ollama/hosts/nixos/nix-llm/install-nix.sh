@@ -1,5 +1,7 @@
 #!/bin/bash
 # git clone -b nix-nvidia https://github.com/tailscale-dev/video-code-snippets.git
+# cd video-code-snippets/hosts/nixos/nix-llm/
+# sh install-nix.sh
 
 # Check if the script is running as root
 if [ "$EUID" -ne 0 ]; then
