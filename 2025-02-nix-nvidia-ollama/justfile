@@ -6,9 +6,11 @@ sub-update:
 
 ## nix installation
 
+## nix updates
+[linux]
+switch target_host=hostname:
+  sudo nixos-rebuild switch --flake .#{{target_host}}
 
-
-
-# docker compose against remote host via Ansible
+## copy docker compose yaml to remote host via Ansible
 compose HOST *V:
   ansible-playbook playbook.yaml --limit {{HOST}} --tags compose {{V}}
