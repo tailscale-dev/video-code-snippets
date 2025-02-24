@@ -43,6 +43,10 @@
   services.openssh.enable = true;
   services.qemuGuest.enable = true;
   services.tailscale.enable = true;
+  services.ollama = {
+    enable = true;
+    host = "0.0.0.0";
+  }
 
   # userland
   #home-manager.useGlobalPkgs = true;
