@@ -17,7 +17,7 @@
     in {
 
       nixosConfigurations = {
-        nix-llm = libx.mkNixos { "x86_64-linux" "nix-llm" "zaphod";
+        nix-llm = libx.mkNixos { "x86_64-linux" "nix-llm" "zaphod" };
       }
 
    };
