@@ -3,7 +3,6 @@ let
   inherit (inputs) nixpkgs nixpkgs-unstable;
 in
 {
-  nixpkgs.config.allowUnfree = true;
   environment.systemPackages = with pkgs; [
     nixpkgs-unstable.legacyPackages.${pkgs.system}.beszel
 

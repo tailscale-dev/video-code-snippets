@@ -66,7 +66,6 @@
   };
 
   # System packages configuration
-  nixpkgs.config.allowUnfree = lib.mkForce true;
   environment.systemPackages = with pkgs; [
     ansible
     colmena

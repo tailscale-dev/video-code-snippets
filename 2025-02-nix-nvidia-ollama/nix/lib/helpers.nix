@@ -12,7 +12,6 @@
         inherit pkgs unstablePkgs inputs system hostname username;
       };
       modules = [
-        { nixpkgs.config.allowUnfree = true; }
         (inputs.vscode-server.nixosModules.default or {})
 
         ../hosts/nixos/${hostname}
