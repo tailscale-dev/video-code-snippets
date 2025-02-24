@@ -4,7 +4,7 @@
   imports =
     [
       ./hardware-configuration.nix
-      ./disko.nix
+      #./disko.nix
       ./../../common/nixos-common.nix
       ./../../common/common-packages.nix
     ];
