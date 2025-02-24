@@ -1,0 +1,14 @@
+#!/usr/bin/env -S just --justfile
+
+## repo configuration
+sub-update:
+  cd .. && git submodule update --init --recursive
+
+## nix installation
+
+
+
+
+# docker compose against remote host via Ansible
+compose HOST *V:
+  ansible-playbook playbook.yaml --limit {{HOST}} --tags compose {{V}}

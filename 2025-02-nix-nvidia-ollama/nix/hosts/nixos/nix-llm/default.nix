@@ -40,7 +40,11 @@
   };
 
   # List services that you want to enable:
-  services.openssh.enable = true;
+  services.openssh = {
+    enable = true;
+    settings.PasswordAuthentication = true;
+    settings.PermitRootLogin = true;
+  };
   services.qemuGuest.enable = true;
   services.tailscale.enable = true;
   services.ollama = {
