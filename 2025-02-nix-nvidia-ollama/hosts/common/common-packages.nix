@@ -30,7 +30,7 @@ in
     git-crypt
     gnused
     go
-    hugo
+    #hugo
     iperf3
     ipmitool
     jetbrains-mono # font
@@ -46,7 +46,7 @@ in
     skopeo
     smartmontools
     television
-    terraform
+    #terraform
     tree
     unzip
     watch

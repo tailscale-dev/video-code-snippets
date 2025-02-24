@@ -1,4 +1,5 @@
 #!/bin/bash
+# git clone -b nix-nvidia https://github.com/tailscale-dev/video-code-snippets.git
 
 # Check if the script is running as root
 if [ "$EUID" -ne 0 ]; then
