@@ -14,4 +14,4 @@ switch target_host=hostname:
 
 ## copy docker compose yaml to remote host via Ansible
 compose HOST *V:
-  ansible-playbook playbook.yaml --limit {{HOST}} --tags compose {{V}}
+  ansible-playbook ansible/playbook.yaml --limit {{HOST}} --tags compose {{V}}

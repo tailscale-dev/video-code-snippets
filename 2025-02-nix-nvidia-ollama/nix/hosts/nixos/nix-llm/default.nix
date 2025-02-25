@@ -4,7 +4,6 @@
   imports =
     [
       ./hardware-configuration.nix
-      #./disko.nix
       ./../../common/nixos-common.nix
       ./../../common/common-packages.nix
     ];
@@ -39,7 +38,6 @@
     videoDrivers = [ "nvidia" ];
   };
 
-  # List services that you want to enable:
   services.openssh = {
     enable = true;
     settings.PasswordAuthentication = true;
@@ -47,10 +45,10 @@
   };
   services.qemuGuest.enable = true;
   services.tailscale.enable = true;
-  services.ollama = {
-    enable = true;
-    host = "0.0.0.0";
-  };
+  # services.ollama = {
+  #   enable = true;
+  #   host = "0.0.0.0";
+  # };
 
   # userland
   #home-manager.useGlobalPkgs = true;
@@ -64,20 +62,6 @@
       #home-manager
     ];
   };
-
-  # System packages configuration
-  environment.systemPackages = with pkgs; [
-    ansible
-    colmena
-    htop
-    inxi
-    just
-    ripgrep
-    pciutils
-    python3
-    tmux
-    wget
-  ];
 
   # Hardware configuration
   hardware = {
