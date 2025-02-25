@@ -12,6 +12,7 @@ in
     htop
     iperf3
     just
+    python3
     tree
     watch
     wget
