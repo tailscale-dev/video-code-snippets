@@ -1,0 +1,3 @@
+[submodule "2025-02-nix-nvidia-ollama/ansible/roles/ironicbadger.docker-compose-generator"]
+	path = 2025-02-nix-nvidia-ollama/ansible/roles/ironicbadger.docker-compose-generator
+	url = git@github.com:ironicbadger/ansible-role-docker-compose-generator.git

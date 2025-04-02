@@ -1,0 +1,44 @@
+services:
+  # AI
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    volumes:
+      - "/opt/appdata/apps/ollama:/root/.ollama"
+    ports:
+      - 11434:11434
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: cdi
+              capabilities:
+                - gpu
+              device_ids:
+                - nvidia.com/gpu=all
+    restart: unless-stopped
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: openwebui
+    ports:
+      - 8080:8080
+    # network_mode: service:ts-openwebui
+    volumes:
+      - "/opt/appdata/openwebui/data:/app/backend/data"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+    restart: unless-stopped
+  # ts-openwebui:
+  #   image: ghcr.io/tailscale/tailscale:latest
+  #   container_name: ts-beszel-hub
+  #   hostname: beszel
+  #   environment:
+  #     - TS_AUTHKEY=tskey-client-not-a-real-token-Hsi1
+  #     - TS_EXTRA_ARGS=--advertise-tags=tag:web
+  #     - TS_SERVE_CONFIG=/config/openwebui.json
+  #     - TS_STATE_DIR=/var/lib/tailscale
+  #     - TS_USERSPACE=true
+  #   volumes:
+  #     - /opt/appdata/openwebui/tailscale/state:/var/lib/tailscale
+  #     - /opt/appdata/openwebui/tailscale/config:/config
+  #   restart: unless-stopped

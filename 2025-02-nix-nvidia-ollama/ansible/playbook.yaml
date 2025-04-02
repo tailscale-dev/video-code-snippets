@@ -1,0 +1,5 @@
+---
+  - hosts: nix-llm
+    roles:
+      - role: ironicbadger.docker-compose-generator
+        tags: compose
