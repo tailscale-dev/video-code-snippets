@@ -57,9 +57,7 @@
         "minVizWidth": 75,
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -180,7 +178,7 @@
             "uid": "${DS}"
           },
           "editorMode": "code",
-          "expr": "rate(tailscaled_inbound_packets_total{path=~\"$path\"})",
+          "expr": "rate(tailscaled_inbound_packets_total{path=~\"$path\"}[5m])",
           "legendFormat": "inbound - {{path}}",
           "range": true,
           "refId": "A"
@@ -191,7 +189,7 @@
             "uid": "${DS}"
           },
           "editorMode": "code",
-          "expr": "rate(tailscaled_outbound_packets_total{path=~\"$path\"})",
+          "expr": "rate(tailscaled_outbound_packets_total{path=~\"$path\"}[5m])",
           "hide": false,
           "legendFormat": "outbound - {{path}}",
           "range": true,
@@ -242,9 +240,7 @@
         "orientation": "auto",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -306,9 +302,7 @@
         "orientation": "auto",
         "percentChangeColorMode": "standard",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -348,10 +342,7 @@
   "preload": false,
   "refresh": "5s",
   "schemaVersion": 40,
-  "tags": [
-    "tailscale",
-    "networking"
-  ],
+  "tags": ["tailscale", "networking"],
   "templating": {
     "list": [
       {
@@ -367,12 +358,8 @@
       {
         "allowCustomValue": false,
         "current": {
-          "text": [
-            "All"
-          ],
-          "value": [
-            "$__all"
-          ]
+          "text": ["All"],
+          "value": ["$__all"]
         },
         "datasource": {
           "type": "prometheus",
