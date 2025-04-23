@@ -1,0 +1,20 @@
+services:
+  mazanoke:
+    container_name: mazanoke
+    image: ghcr.io/civilblur/mazanoke:latest
+    network_mode: service:ts-mazanoke
+    depends_on:
+      - ts-mazanoke
+    restart: unless-stopped
+  ts-mazanoke:
+    image: tailscale/tailscale:latest
+    hostname: images
+    environment:
+      - TS_AUTHKEY=tskey-auth-abc123
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_SERVE_CONFIG=/config/mazanoke.json
+      - TS_USERSPACE=true
+    volumes:
+      - ${PWD}/mazanoke/config:/config
+      - ${PWD}/mazanoke/ts-state:/var/lib/tailscale
+    restart: unless-stopped
