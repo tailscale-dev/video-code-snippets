@@ -1,0 +1,59 @@
+services:
+  tr:
+    image: traefik
+    container_name: tr
+    volumes:
+      - "/opt/appdata/traefik/letsencrypt:/letsencrypt"
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - traefik.enable=false
+    ports:
+      - 80:80
+      - 443:443
+    environment:
+      - CF_DNS_API_TOKEN=abc123
+    command:
+      - --log.level=info
+      - --accesslog=false
+      - --api.insecure=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.websecure.http.tls.certresolver=cloudflare
+      - --certificatesresolvers.cloudflare.acme.dnschallenge=true
+      - --certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare
+      - --certificatesresolvers.cloudflare.acme.email=admin@initechlabs.dev
+      - --certificatesresolvers.cloudflare.acme.storage=/letsencrypt/acme.json
+      - --serversTransport.insecureSkipVerify=true
+    restart: unless-stopped
+  pocketid:
+    image: ghcr.io/pocket-id/pocket-id
+    container_name: pocketid
+    environment:
+      - PUBLIC_APP_URL=https://id.initechlabs.dev
+      - TRUST_PROXY=true
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.pocketid.rule=Host(`id.initechlabs.dev`)"
+    volumes:
+      - "/opt/appdata/pocket-id/data:/app/backend/data"
+    # Optional healthcheck
+    healthcheck:
+      test: "curl -f http://localhost/health"
+      interval: 1m30s
+      timeout: 5s
+      retries: 2
+      start_period: 10s
+    restart: unless-stopped
+  webfinger:
+    image: nginx
+    container_name: webfinger
+    volumes:
+      - "/opt/appdata/webfinger:/usr/share/nginx/html:ro"
+    labels:
+      - traefik.enable=true
+      - "traefik.http.routers.webfinger.rule=Host(`initechlabs.dev`)"
+    restart: unless-stopped
