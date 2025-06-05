@@ -1,0 +1,22 @@
+services:
+  audiobookshelf-ts:
+    image: tailscale/tailscale:latest
+    hostname: audiobooks
+    environment:
+      - TS_AUTHKEY=tskey-auth-revokved
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_SERVE_CONFIG=/config/audiobookshelf.json
+      - TS_USERSPACE=true
+    volumes:
+      - /mnt/ssd1/appdata/audiobookshelf/ts-config:/config
+      - /mnt/ssd1/appdata/audiobookshelf/ts-state:/var/lib/tailscale
+    restart: unless-stopped
+  audiobookshelf:
+    image: advplyr/audiobookshelf
+    container_name: audiobookshelf
+    network_mode: service:audiobookshelf-ts
+    volumes:
+      - /mnt/ssd1/media/audiobooks:/audiobooks:ro
+      - /mnt/ssd1/appdata/audiobookshelf/metadata:/metadata
+      - /mnt/ssd1/appdata/audiobookshelf/config:/config
+    restart: unless-stopped

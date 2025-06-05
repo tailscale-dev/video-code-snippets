@@ -1,0 +1,75 @@
+services:
+  immich-ts:
+    image: tailscale/tailscale:latest
+    hostname: immich
+    environment:
+      - TS_AUTHKEY=tskey-auth-revoked
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_SERVE_CONFIG=/config/immich.json
+      - TS_USERSPACE=true
+    volumes:
+      - /mnt/ssd1/appdata/immich/ts-config:/config
+      - /mnt/ssd1/appdata/immich/ts-state:/var/lib/tailscale
+    restart: unless-stopped
+  immich-server:
+    container_name: immich_server
+    image: ghcr.io/immich-app/immich-server:release
+    # extends:
+    #   file: hwaccel.transcoding.yml
+    #   service: cpu # set to one of [nvenc, quicksync, rkmpp, vaapi, vaapi-wsl] for accelerated transcoding
+    volumes:
+      - /mnt/ssd1/data/photos/upload:/usr/src/app/upload
+      - /etc/localtime:/etc/localtime:ro
+    network_mode: service:immich-ts
+    # ports:
+    #   - '2283:2283'
+    environment:
+      DB_HOSTNAME: immich-database
+      DB_PASSWORD: tailscale123
+      DB_USERNAME: zaphod
+      DB_DATABASE_NAME: immich
+      REDIS_HOSTNAME: immich-redis
+    depends_on:
+      - immich-redis
+      - immich-database
+    restart: unless-stopped
+    healthcheck:
+      disable: false
+
+  immich-machine-learning:
+    container_name: immich_machine_learning
+    # For hardware acceleration, add one of -[armnn, cuda, rocm, openvino, rknn] to the image tag.
+    # Example tag: ${IMMICH_VERSION:-release}-cuda
+    image: ghcr.io/immich-app/immich-machine-learning:release
+    # extends: # uncomment this section for hardware acceleration - see https://immich.app/docs/features/ml-hardware-acceleration
+    #   file: hwaccel.ml.yml
+    #   service: cpu # set to one of [armnn, cuda, rocm, openvino, openvino-wsl, rknn] for accelerated inference
+    volumes:
+      - model-cache:/cache
+    restart: unless-stopped
+    healthcheck:
+      disable: false
+
+  immich-redis:
+    container_name: immich_redis
+    image: docker.io/valkey/valkey:8-bookworm@sha256:ff21bc0f8194dc9c105b769aeabf9585fea6a8ed649c0781caeac5cb3c247884
+    healthcheck:
+      test: redis-cli ping || exit 1
+    restart: unless-stopped
+
+  immich-database:
+    container_name: immich_postgres
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.3.0-pgvectors0.2.0@sha256:fa4f6e0971f454cd95fec5a9aaed2ed93d8f46725cc6bc61e0698e97dba96da1
+    environment:
+      POSTGRES_PASSWORD: tailscale123
+      POSTGRES_USER: zaphod
+      POSTGRES_DB: immich
+      POSTGRES_INITDB_ARGS: '--data-checksums'
+      # Uncomment the DB_STORAGE_TYPE: 'HDD' var if your database isn't stored on SSDs
+      # DB_STORAGE_TYPE: 'HDD'
+    volumes:
+      - /mnt/ssd1/appdata/immich/database:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  model-cache:
