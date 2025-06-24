@@ -1,0 +1,23 @@
+services:
+  tailscale-mcp:
+    image: hexsleeves/tailscale-mcp-server:latest
+    container_name: tailscale-mcp-server
+    restart: unless-stopped
+    networks:
+      - mcp-network
+    volumes:
+      - ./logs:/app/logs
+    environment:
+      - TAILSCALE_API_KEY=tskey-api-kQ9uee2Gju11CNTRL-ngYiHhTx1c8TYPVYsYuUb8Mo268Ke671
+      - TAILSCALE_TAILNET=atailandscales@gmail.com
+      - MCP_SERVER_LOG_FILE=/app/logs/server.log
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "node", "-e", "process.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  mcp-network:
+    driver: bridge
