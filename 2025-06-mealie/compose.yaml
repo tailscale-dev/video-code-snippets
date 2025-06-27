@@ -1,0 +1,36 @@
+services:
+  mealie-ts:
+    image: tailscale/tailscale:latest
+    hostname: mealie
+    environment:
+      - TS_AUTHKEY=tskey-auth-faketoken
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_SERVE_CONFIG=/config/serve.json
+      - TS_USERSPACE=true
+    volumes:
+      - /mnt/ssd1/appdata/mealie/tailscale/config/serve.json:/config/serve.json
+      - /mnt/ssd1/appdata/mealie/tailscale/state:/var/lib/tailscale
+    restart: unless-stopped
+  mealie:
+    image: ghcr.io/mealie-recipes/mealie:v2.8.0
+    container_name: mealie
+    restart: unless-stopped
+    network_mode: service:mealie-ts
+    deploy:
+      resources:
+        limits:
+          memory: 1000M
+    volumes:
+      - /mnt/ssd1/appdata/mealie/app:/app/data/
+    environment:
+      # Set Backend ENV Variables Here
+      ALLOW_SIGNUP: "false"
+      PUID: 1000
+      PGID: 1000
+      TZ: America/New_York
+      BASE_URL: https://mealie.velociraptor-noodlefish.ts.net
+      OPENAI_API_KEY: sk-proj-faketoken
+      # for use with Ollama (API key required too though not used by mealie)
+      #OPENAI_BASE_URL: http://baldrick:11434/v1
+      #OPENAI_MODEL: qwen2.5vl:7b
+      #OPENAI_MODEL: phi4:14b
