@@ -1,6 +1,7 @@
 services:
   immich-ts:
     image: tailscale/tailscale:latest
+    container_name: immich-ts
     hostname: immich
     environment:
       - TS_AUTHKEY=tskey-auth-revoked
