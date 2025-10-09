@@ -5,7 +5,7 @@ services:
     hostname: git
     volumes:
       - ./forgejo/tailscale:/var/lib/tailscale
-      - ./forgejo/tailscale/serve/serve.json:/config/serve.json:ro
+      - ./serve.json:/config/serve.json:ro
     environment:
       - TS_AUTHKEY=${TS_AUTHKEY}
       - TS_SERVE_CONFIG=/config/serve.json
