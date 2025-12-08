@@ -39,7 +39,7 @@ services:
       - traefik.enable=true
       - "traefik.http.routers.pocketid.rule=Host(`id.initechlabs.dev`)"
     volumes:
-      - "/opt/appdata/pocket-id/data:/app/backend/data"
+      - "/opt/appdata/pocket-id/data:/app/data"
     # Optional healthcheck
     healthcheck:
       test: "curl -f http://localhost/health"
