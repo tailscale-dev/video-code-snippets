@@ -11,7 +11,7 @@ services:
     container_name: immich-ts
     hostname: immich
     environment:
-      - TS_AUTHKEY=tskey-auth-kFPbLkJuMj11CNTRL-K3BTkFuvQLKvBmGTPzssKKYfkMfBTW4x
+      - TS_AUTHKEY=tskey-auth-abc
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_SERVE_CONFIG=/config/serve.json
       - TS_USERSPACE=true

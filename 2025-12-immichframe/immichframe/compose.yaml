@@ -12,8 +12,8 @@ services:
     environment:
       - TZ=America/New_York
       - "ImmichServerUrl=https://immich.velociraptor-noodlefish.ts.net"
-      - "ApiKey=cCipogx9ZDbcM1z7YtSLj9VLYfOvwLZjLpdOgMv7s"
-      - "Albums=3cbe8002-abbc-4d5b-8c91-59b067a1d46d"
+      - "ApiKey=abc"
+      #- "Albums=3cbe8002-abbc-4d5b-8c91-59b067a1d46d"
       - "PrimaryColor=#FFFFFF"
       - "ClockFormat=HH:mm"
       - PhotoDateFormat=yyyy-MM-dd
@@ -25,7 +25,7 @@ services:
     image: tailscale/tailscale:latest
     hostname: immichframe-family
     environment:
-      - "TS_AUTHKEY=tskey-auth-kgha66MN5z11CNTRL-9cbWjp4QxXjxCaFjpUSVYjm46cpPPB27K"
+      - "TS_AUTHKEY=tskey-auth-abc"
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_SERVE_CONFIG=/config/serve.json
       - TS_USERSPACE=true
