@@ -1,0 +1,7 @@
+"grants": [
+  {
+    "src": ["autogroup:shared"],
+    "dst": ["tag:family-share"],
+    "ip":  ["tcp:443", "tcp:8080"]
+  }
+]

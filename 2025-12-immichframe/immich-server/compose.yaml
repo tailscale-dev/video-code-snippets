@@ -1,0 +1,87 @@
+configs:
+  immich-ts-serve:
+    content: |
+      { "TCP": { "443": { "HTTPS": true } },
+        "Web": { "$${TS_CERT_DOMAIN}:443": { "Handlers": { "/": { "Proxy": "http://127.0.0.1:2283" } } } },
+        "AllowFunnel": { "$${TS_CERT_DOMAIN}:443": false } }
+
+services:
+  immich-ts:
+    image: tailscale/tailscale:latest
+    container_name: immich-ts
+    hostname: immich
+    environment:
+      - TS_AUTHKEY=tskey-auth-kFPbLkJuMj11CNTRL-K3BTkFuvQLKvBmGTPzssKKYfkMfBTW4x
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_SERVE_CONFIG=/config/serve.json
+      - TS_USERSPACE=true
+    configs:
+      - source: immich-ts-serve
+        target: /config/serve.json
+    ports:
+      - '2283:2283'
+    volumes:
+      - /mnt/data/appdata/immich/ts-config:/config
+      - /mnt/data/appdata/immich/ts-state:/var/lib/tailscale
+    restart: unless-stopped
+  immich-server:
+    container_name: immich_server
+    image: ghcr.io/immich-app/immich-server:release
+    # extends:
+    #   file: hwaccel.transcoding.yml
+    #   service: cpu # set to one of [nvenc, quicksync, rkmpp, vaapi, vaapi-wsl] for accelerated transcoding
+    volumes:
+      - /mnt/data/photos/upload:/usr/src/app/upload
+      - /mnt/data/photos/for-public:/mnt/data/photos/for-public
+      - /etc/localtime:/etc/localtime:ro
+    network_mode: service:immich-ts
+    environment:
+      DB_HOSTNAME: immich-database
+      DB_PASSWORD: tailscale123
+      DB_USERNAME: zaphod
+      DB_DATABASE_NAME: immich
+      REDIS_HOSTNAME: immich-redis
+    depends_on:
+      - immich-redis
+      - immich-database
+    restart: unless-stopped
+    healthcheck:
+      disable: false
+
+  immich-machine-learning:
+    container_name: immich_machine_learning
+    # For hardware acceleration, add one of -[armnn, cuda, rocm, openvino, rknn] to the image tag.
+    # Example tag: ${IMMICH_VERSION:-release}-cuda
+    image: ghcr.io/immich-app/immich-machine-learning:release
+    # extends: # uncomment this section for hardware acceleration - see https://immich.app/docs/features/ml-hardware-acceleration
+    #   file: hwaccel.ml.yml
+    #   service: cpu # set to one of [armnn, cuda, rocm, openvino, openvino-wsl, rknn] for accelerated inference
+    volumes:
+      - model-cache:/cache
+    restart: unless-stopped
+    healthcheck:
+      disable: false
+
+  immich-redis:
+    container_name: immich_redis
+    image: docker.io/valkey/valkey:8@sha256:81db6d39e1bba3b3ff32bd3a1b19a6d69690f94a3954ec131277b9a26b95b3aa
+    healthcheck:
+      test: redis-cli ping || exit 1
+    restart: unless-stopped
+
+  immich-database:
+    container_name: immich_postgres
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23
+    environment:
+      POSTGRES_PASSWORD: tailscale123
+      POSTGRES_USER: zaphod
+      POSTGRES_DB: immich
+      POSTGRES_INITDB_ARGS: '--data-checksums'
+      # Uncomment the DB_STORAGE_TYPE: 'HDD' var if your database isn't stored on SSDs
+      # DB_STORAGE_TYPE: 'HDD'
+    volumes:
+      - /mnt/data/appdata/immich/database:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  model-cache:

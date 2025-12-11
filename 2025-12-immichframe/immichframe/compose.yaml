@@ -1,0 +1,40 @@
+configs:
+  immichframe-family-ts-serve:
+    content: |
+      { "TCP": { "443": { "HTTPS": true } },
+        "Web": { "$${TS_CERT_DOMAIN}:443": { "Handlers": { "/": { "Proxy": "http://127.0.0.1:8080" } } } },
+        "AllowFunnel": { "$${TS_CERT_DOMAIN}:443": false } }
+services:
+  immichframe-family:
+    container_name: immichframe-family
+    image: ghcr.io/immichframe/immichframe:latest
+    network_mode: service:immichframe-family-ts
+    environment:
+      - TZ=America/New_York
+      - "ImmichServerUrl=https://immich.velociraptor-noodlefish.ts.net"
+      - "ApiKey=cCipogx9ZDbcM1z7YtSLj9VLYfOvwLZjLpdOgMv7s"
+      - "Albums=3cbe8002-abbc-4d5b-8c91-59b067a1d46d"
+      - "PrimaryColor=#FFFFFF"
+      - "ClockFormat=HH:mm"
+      - PhotoDateFormat=yyyy-MM-dd
+    depends_on:
+      - immichframe-family-ts
+    restart: unless-stopped
+  immichframe-family-ts:
+    container_name: immichframe-family-ts
+    image: tailscale/tailscale:latest
+    hostname: immichframe-family
+    environment:
+      - "TS_AUTHKEY=tskey-auth-kgha66MN5z11CNTRL-9cbWjp4QxXjxCaFjpUSVYjm46cpPPB27K"
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_SERVE_CONFIG=/config/serve.json
+      - TS_USERSPACE=true
+    volumes:
+      - "/mnt/data/photos/immich/immichframe/family-ts:/var/lib/tailscale"
+    configs:
+      - source: immichframe-family-ts-serve
+        target: /config/serve.json
+    restart: unless-stopped
+
+volumes:
+  model-cache:
