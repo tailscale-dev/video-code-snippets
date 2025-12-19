@@ -1,0 +1,54 @@
+configs:
+  copyparty-ts-serve:
+    content: |
+      {"TCP":{"443":{"HTTPS":true}},
+      "Web":{"$${TS_CERT_DOMAIN}:443":
+          {"Handlers":{"/":
+          {"Proxy":"http://127.0.0.1:3923"}}}},
+      "AllowFunnel":{"$${TS_CERT_DOMAIN}:443":false}}
+
+  copyparty-config:
+    content: |
+      [global]
+      e2dsa
+      rproxy: -1
+
+      [accounts]
+      admin:changeme
+
+      [/]
+      /data
+      accs:
+        rw: admin
+
+services:
+  copyparty-ts:
+    image: tailscale/tailscale:latest
+    container_name: copyparty-ts
+    hostname: copyparty
+    environment:
+      - TS_AUTHKEY=tskey-auth-xxx   # replace with your auth key
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_SERVE_CONFIG=/config/serve.json
+      - TS_USERSPACE=true
+    configs:
+      - source: copyparty-ts-serve
+        target: /config/serve.json
+    volumes:
+      - copyparty-ts-state:/var/lib/tailscale
+    restart: unless-stopped
+
+  copyparty:
+    image: copyparty/ac:latest
+    container_name: copyparty
+    network_mode: service:copyparty-ts
+    configs:
+      - source: copyparty-config
+        target: /cfg/config.conf
+    volumes:
+      - copyparty-data:/data
+    restart: unless-stopped
+
+volumes:
+  copyparty-ts-state:
+  copyparty-data:
