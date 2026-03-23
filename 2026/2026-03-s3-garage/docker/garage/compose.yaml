@@ -1,0 +1,41 @@
+configs:
+  ts-serve:
+    content: |
+      {"TCP":{"443":{"HTTPS":true}},
+      "Web":{"$${TS_CERT_DOMAIN}:443":
+          {"Handlers":{"/":
+          {"Proxy":"http://127.0.0.1:3900"}}}},
+      "AllowFunnel":{"$${TS_CERT_DOMAIN}:443":false}}
+services:
+  garage-ts:
+    image: tailscale/tailscale:latest
+    container_name: garage-ts
+    hostname: garage
+    environment:
+      - "TS_AUTHKEY=${TS_AUTHKEY}"
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_SERVE_CONFIG=/config/serve.json
+      - TS_EXTRA_ARGS=--advertise-tags=tag:container
+    volumes:
+      - "./ts-state:/var/lib/tailscale"
+    configs:
+      - source: ts-serve
+        target: /config/serve.json
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    restart: unless-stopped
+
+  garage:
+    image: dxflrs/garage:v2.1.0
+    container_name: garage
+    network_mode: service:garage-ts
+    depends_on:
+      - garage-ts
+    volumes:
+      - "./garage.toml:/etc/garage.toml:ro"
+      - "./data:/var/lib/garage/data"
+      - "./meta:/var/lib/garage/meta"
+    restart: unless-stopped

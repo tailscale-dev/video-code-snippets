@@ -1,0 +1,51 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+TF_DIR         := "tf/example-proxmox"
+GARAGE_DIR     := "docker/garage"
+GARAGE_REMOTE  := "/root/garage"
+
+init:
+    cd {{TF_DIR}} && tofu init -backend-config=backend.hcl
+
+plan:
+    cd {{TF_DIR}} && tofu plan -var-file=terraform.tfvars
+
+apply:
+    cd {{TF_DIR}} && tofu apply -var-file=terraform.tfvars
+
+destroy:
+    cd {{TF_DIR}} && tofu destroy -var-file=terraform.tfvars
+
+# Bootstrap a remote Garage node over SSH
+# Usage: just garage-docker-init <tailscale-hostname>
+garage-docker-init host:
+    ssh {{host}} "mkdir -p {{GARAGE_REMOTE}}"
+    scp \
+        {{GARAGE_DIR}}/.env \
+        {{GARAGE_DIR}}/compose.yaml \
+        {{GARAGE_DIR}}/garage.toml \
+        {{host}}:{{GARAGE_REMOTE}}/
+
+garage-init host:
+    {{GARAGE_DIR}}/garage-init.sh {{host}}
+
+# Print the S3 key ID and secret for the 'tofu' key
+# Usage: just garage-keys <tailscale-hostname>
+garage-keys host:
+    ssh {{host}} docker exec garage /garage key info tofu --show-secret | grep -E "^(Key ID|Secret key)"
+
+# List objects in the terraform-state bucket
+# Usage: just garage-verify <tailscale-hostname>
+garage-verify host:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    key_info=$(ssh {{host}} docker exec garage /garage key info tofu --show-secret)
+    key_id=$(echo "$key_info" | awk '/^Key ID:/{print $NF}')
+    secret=$(echo "$key_info" | awk '/^Secret key:/{print $NF}')
+    ssh {{host}} docker run --rm \
+      -e AWS_ACCESS_KEY_ID="$key_id" \
+      -e AWS_SECRET_ACCESS_KEY="$secret" \
+      --network container:garage \
+      amazon/aws-cli \
+      --endpoint-url http://localhost:3900 \
+      s3 ls s3://terraform-state/ --recursive --human-readable

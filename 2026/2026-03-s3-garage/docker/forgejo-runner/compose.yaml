@@ -1,0 +1,38 @@
+services:
+  runner-ts:
+    image: tailscale/tailscale:latest
+    container_name: runner-ts
+    hostname: forgejo-runner
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_EXTRA_ARGS=--advertise-tags=tag:container
+      - TS_ACCEPT_DNS=true
+    volumes:
+      - ./ts-state:/var/lib/tailscale
+    dns:
+      - 100.100.100.100
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    restart: unless-stopped
+
+  runner:
+    image: data.forgejo.org/forgejo/runner:11
+    container_name: forgejo-runner
+    network_mode: service:runner-ts
+    depends_on:
+      - runner-ts
+    user: root
+    working_dir: /data
+    volumes:
+      - ./data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    # Register once before first run:
+    #   docker compose run --rm --entrypoint sh runner
+    #   > forgejo-runner generate-config > /data/config.yml
+    #   > forgejo-runner register
+    command: ["/bin/forgejo-runner", "daemon", "--config", "/data/config.yml"]
+    restart: unless-stopped
