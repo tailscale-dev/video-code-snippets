@@ -1,0 +1,3 @@
+endpoint   = "https://garage.<your-tailnet>.ts.net:3900"
+access_key = "your-garage-key-id"
+secret_key = "your-garage-secret-key"

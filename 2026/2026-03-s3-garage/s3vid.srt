@@ -1,0 +1,879 @@
+1
+00:00:00,340 --> 00:00:03,780
+If you've been in and around the world of infrastructure for a while, you'll know that
+
+2
+00:00:04,060 --> 00:00:09,120
+Terraform works great locally. Your state just sits on your machine and everything's nice and simple.
+
+3
+00:00:09,760 --> 00:00:13,480
+But the moment you move into CI, you're going to need some kind of remote state.
+
+4
+00:00:13,970 --> 00:00:18,940
+And that's where things start to get interesting, especially after the MinIO drama late last year,
+
+5
+00:00:19,380 --> 00:00:24,140
+where a lot of people started questioning what open source really means in the world of S3
+
+6
+00:00:24,420 --> 00:00:28,920
+compatible storage. So today I'm going to show you how to run your own S3 backend using Garage.
+
+7
+00:00:29,440 --> 00:00:33,500
+This is a fully open source and self-hosted S3 backend storage solution.
+
+8
+00:00:34,060 --> 00:00:37,560
+I'll also show you how to hook it up with Tailscale and make it accessible from anywhere.
+
+9
+00:00:38,000 --> 00:00:45,660
+So that means whether your runners are running locally in a Forgejo instance or in GitHub Actions or GitLab or it doesn't matter.
+
+10
+00:00:46,260 --> 00:00:51,080
+Anywhere that these runners are running, they'll be able to talk to your Terraform state and everybody's happy.
+
+11
+00:00:53,120 --> 00:00:55,700
+Now, there are quite a few moving pieces to today's video.
+
+12
+00:00:55,800 --> 00:00:58,980
+So first of all, you're going to need a self-hosted Forgejo instance,
+
+13
+00:00:59,500 --> 00:01:01,260
+at least if you're going to copy exactly what I'm doing,
+
+14
+00:01:01,720 --> 00:01:07,440
+which is a fully offline, fully self-hosted replacement for GitHub and GitHub Actions.
+
+15
+00:01:08,260 --> 00:01:10,020
+So you'll need a self-hosted Forgejo.
+
+16
+00:01:10,560 --> 00:01:14,020
+You'll also need to spin up somewhere for the Forgejo runners to live.
+
+17
+00:01:14,100 --> 00:01:16,640
+This is what allows you to emulate GitHub Actions locally.
+
+18
+00:01:17,320 --> 00:01:20,560
+You'll also then need somewhere to run the Garage instance,
+
+19
+00:01:20,780 --> 00:01:24,500
+and Garage is the S3 compatible object storage clone,
+
+20
+00:01:24,940 --> 00:01:28,780
+open source software clone that we're using to store the Terraform state
+
+21
+00:01:29,360 --> 00:01:30,980
+as OpenTofu does its thing.
+
+22
+00:01:31,600 --> 00:01:35,060
+Now, what's interesting about what I just said with Terraform and OpenTofu,
+
+23
+00:01:36,759 --> 00:01:41,920
+Terraform doesn't work with remote state storage tools
+
+24
+00:01:42,200 --> 00:01:45,500
+that are not Terraform or HashiCorp Cloud, I forget what they call it.
+
+25
+00:01:46,260 --> 00:01:48,120
+At least this was my experience a couple of months ago
+
+26
+00:01:48,180 --> 00:01:49,440
+when I was testing this all out.
+
+27
+00:01:50,040 --> 00:01:56,220
+And so what I did was I literally dropped in the OpenTofu binary as a replacement for Terraform.
+
+28
+00:01:56,460 --> 00:01:58,980
+OpenTofu is an open source fork of Terraform.
+
+29
+00:01:59,030 --> 00:02:04,440
+I think there was some drama with a business source license switch a few months ago, maybe a year ago now.
+
+30
+00:02:05,360 --> 00:02:08,320
+And OpenTofu is a drop-in replacement for Terraform.
+
+31
+00:02:08,440 --> 00:02:09,399
+At least that was my experience.
+
+32
+00:02:09,600 --> 00:02:12,420
+There was no syntax changes required, anything like that.
+
+33
+00:02:12,470 --> 00:02:16,720
+So if you've been on the fence about trying out OpenTofu, well, this might be a good project for you.
+
+34
+00:02:17,380 --> 00:02:19,700
+So as I say, lots of moving pieces to this puzzle.
+
+35
+00:02:20,340 --> 00:02:22,280
+And I'm running all of this on top of Proxmox.
+
+36
+00:02:22,290 --> 00:02:28,500
+You can see here I've just got three LXC containers running Forgejo, the runner, and Garage as well.
+
+37
+00:02:28,760 --> 00:02:35,980
+The payoff for doing all of this stuff is that I can go into my Terraform VARS file right here and modify a couple of values.
+
+38
+00:02:36,160 --> 00:02:41,420
+I just want, I don't want a three node cluster anymore and a three worker node cluster anymore or Talos.
+
+39
+00:02:41,940 --> 00:02:46,660
+I just want, in fact, why don't I nuke the entire cluster and do zero and zero.
+
+40
+00:02:46,840 --> 00:02:51,600
+And this is going to completely delete my, it's not a real cluster, don't worry.
+
+41
+00:02:52,580 --> 00:02:54,440
+But this is going to run through CI now.
+
+42
+00:02:54,580 --> 00:03:00,320
+If I go to the Actions tab up here, you can see that it's actually running in one of my self-hosted runners.
+
+43
+00:03:01,140 --> 00:03:10,880
+The entire Terraform plan stage and then the Apply stage where it will go out and talk over the Proxmox API and either clone VMs or modify them.
+
+44
+00:03:11,340 --> 00:03:14,320
+Do what Terraform does, like infrastructure stuff.
+
+45
+00:03:15,200 --> 00:03:17,740
+This does take a couple of minutes, and I won't make you watch the whole thing.
+
+46
+00:03:18,150 --> 00:03:21,860
+But essentially what we'll do is basically delete these six VMs right here
+
+47
+00:03:22,380 --> 00:03:25,960
+and then walk you through the process of how OpenTofu is hooked up,
+
+48
+00:03:26,020 --> 00:03:28,360
+how all the runners are hooked up, and all that kind of stuff.
+
+49
+00:03:28,390 --> 00:03:33,220
+Like I say, lots of moving parts today, so make liberal use of the chapters down below.
+
+50
+00:03:34,020 --> 00:03:34,520
+So there we go.
+
+51
+00:03:34,640 --> 00:03:38,540
+With no manual intervention from me, those machines are now gone.
+
+52
+00:03:38,700 --> 00:03:39,400
+They are kaput.
+
+53
+00:03:39,610 --> 00:03:40,360
+They are no more.
+
+54
+00:03:41,040 --> 00:03:46,040
+And that was done simply through the process of CI and OpenTofu doing its thing.
+
+55
+00:03:46,860 --> 00:03:51,560
+So let's dig a little bit into the repos themselves and try and figure out a little bit about what's going on.
+
+56
+00:03:52,160 --> 00:03:56,060
+So we see here I've got this folder called .forgejo/workflows.
+
+57
+00:03:56,370 --> 00:03:59,080
+And this is where all of the magic happens.
+
+58
+00:03:59,210 --> 00:04:04,700
+You can see that this runs on a self-hosted runner with the tag or label of Docker.
+
+59
+00:04:05,580 --> 00:04:06,980
+And then it checks the repo out.
+
+60
+00:04:07,050 --> 00:04:10,780
+It installs the OpenTofu binary so that it can actually talk and do its thing.
+
+61
+00:04:11,480 --> 00:04:15,700
+and then it literally just does exactly what you would do if you were typing it on the command line
+
+62
+00:04:16,500 --> 00:04:22,600
+and then does a tofu apply auto-approve and off it goes it does its thing so essentially what this
+
+63
+00:04:22,800 --> 00:04:27,700
+means is that whatever the state of your main branch is because that's what we've configured
+
+64
+00:04:27,840 --> 00:04:34,120
+up here that is the state that Proxmox will be representing Proxmox is just a vehicle for this
+
+65
+00:04:34,260 --> 00:04:40,800
+example you can of course use Terraform to configure all sorts of stuff I'm just using
+
+66
+00:04:40,820 --> 00:04:46,880
+Proxmox today as an example you've got to make darn sure that whatever makes it onto your main branch
+
+67
+00:04:47,240 --> 00:04:53,440
+is the state of the world that you would like to see because if it isn't then stuff's going to get
+
+68
+00:04:53,600 --> 00:05:00,240
+deleted okay so that's the workflow very straightforward um in the docker folder though
+
+69
+00:05:00,240 --> 00:05:05,500
+this is where uh you've basically got to set three containers up six technically because each service
+
+70
+00:05:05,540 --> 00:05:10,780
+has its own sidecar so let me show you what that looks like the Forgejo server and that's remember
+
+71
+00:05:10,800 --> 00:05:14,220
+Forgejo is the GitHub app that we're looking at here, effectively.
+
+72
+00:05:15,050 --> 00:05:18,760
+Under compose.yaml, you'll see this is a fairly standard pattern for the channel at this point.
+
+73
+00:05:18,900 --> 00:05:23,020
+I've got the application itself down here configured in 15 lines of code.
+
+74
+00:05:23,720 --> 00:05:26,520
+And then I have a sidecar Tailscale service container
+
+75
+00:05:27,100 --> 00:05:33,660
+where I can essentially put Forgejo directly onto my tail net using this name here.
+
+76
+00:05:34,340 --> 00:05:39,120
+And then you'll notice, look, I'm actually accessing Forgejo itself on a tail net domain name.
+
+77
+00:05:39,240 --> 00:05:42,000
+I haven't had to configure a reverse proxy or anything like that.
+
+78
+00:05:42,560 --> 00:05:46,760
+All I had to do was supply this ts-serve config at the top of my YAML file,
+
+79
+00:05:47,640 --> 00:05:50,180
+and then Tailscale will go out and hit Let's Encrypt
+
+80
+00:05:50,180 --> 00:05:54,880
+and generate a valid TLS certificate for your domains automatically.
+
+81
+00:05:56,199 --> 00:05:57,420
+It's really nice.
+
+82
+00:05:58,140 --> 00:06:00,500
+Okay, the Forgejo runner is a similar idea.
+
+83
+00:06:01,130 --> 00:06:03,700
+You can see, although we're not putting this one directly on the tail net
+
+84
+00:06:03,920 --> 00:06:07,140
+with a, what do we call this, a fully qualified domain name
+
+85
+00:06:07,340 --> 00:06:08,240
+with a TLS certificate,
+
+86
+00:06:08,740 --> 00:06:11,720
+We're literally just putting the runner itself here.
+
+87
+00:06:12,400 --> 00:06:16,360
+We are just putting that runner with a valid host name on the tail net
+
+88
+00:06:16,620 --> 00:06:21,960
+so that the Forgejo runner infrastructure can go out and talk to it over the tail net.
+
+89
+00:06:21,980 --> 00:06:27,480
+Now, the value of doing this is it means that you can put this runner anywhere.
+
+90
+00:06:27,840 --> 00:06:29,600
+You can put Forgejo anywhere.
+
+91
+00:06:29,620 --> 00:06:34,260
+You can put it in the cloud and then have the runners behind a residential firewall, for example.
+
+92
+00:06:34,480 --> 00:06:37,440
+And this, in the age of AI, I tell you,
+
+93
+00:06:38,140 --> 00:06:41,820
+my gaming GPU is way cheaper than some of those cloud GPUs.
+
+94
+00:06:42,520 --> 00:06:45,040
+Okay, it's not as good, but it's free.
+
+95
+00:06:45,440 --> 00:06:46,880
+Ostensibly, to me at least, it's free.
+
+96
+00:06:47,160 --> 00:06:50,700
+So if you want to put your runners in a different location
+
+97
+00:06:51,020 --> 00:06:53,980
+from where your main code repository lives
+
+98
+00:06:54,610 --> 00:06:56,800
+and do it in a secure way without opening any ports
+
+99
+00:06:56,910 --> 00:06:59,220
+or anything like that, this is the way to do it.
+
+100
+00:06:59,760 --> 00:07:01,340
+I don't know of a better way to do it, honestly.
+
+101
+00:07:01,900 --> 00:07:04,680
+So then within Forgejo, we need to go to the runners option here.
+
+102
+00:07:04,690 --> 00:07:08,340
+So let me go to site administration, actions, and then runners.
+
+103
+00:07:09,020 --> 00:07:11,240
+And creating a new runner is as simple as this.
+
+104
+00:07:11,460 --> 00:07:13,580
+You literally give it a registration token
+
+105
+00:07:14,160 --> 00:07:18,740
+and put it into the .env file in the repo right here.
+
+106
+00:07:18,770 --> 00:07:21,260
+And you can see that my token, I just put it in here.
+
+107
+00:07:21,780 --> 00:07:25,420
+That then gets passed through to the underlying runner container
+
+108
+00:07:25,950 --> 00:07:27,960
+and it picks it up and everything's golden.
+
+109
+00:07:28,010 --> 00:07:29,620
+I mean, it's really straightforward.
+
+110
+00:07:30,340 --> 00:07:33,380
+Because those two can discover each other across the tail net,
+
+111
+00:07:34,020 --> 00:07:37,280
+you really don't have to think about any networking whatsoever.
+
+112
+00:07:37,960 --> 00:07:39,020
+It's very straightforward.
+
+113
+00:07:40,240 --> 00:07:41,600
+Okay, so that's the runner side of things.
+
+114
+00:07:41,820 --> 00:07:44,300
+And then finally, of course, the star of the show is Garage.
+
+115
+00:07:44,880 --> 00:07:48,340
+Garage has been a breath of fresh air, and it's really simple to deploy this.
+
+116
+00:07:48,820 --> 00:07:50,700
+It also supports distributed storage.
+
+117
+00:07:50,840 --> 00:07:54,400
+So if you want to have a cluster across multiple physical locations,
+
+118
+00:07:55,160 --> 00:07:57,180
+you can use Garage to replicate between itself.
+
+119
+00:07:58,220 --> 00:07:59,300
+We're not doing any of that today.
+
+120
+00:07:59,500 --> 00:08:02,960
+We're just doing a dead simple single node instance right here,
+
+121
+00:08:03,660 --> 00:08:06,320
+using the same pattern of the Tailscale sidecar container
+
+122
+00:08:06,580 --> 00:08:08,080
+to join Garage to our tail net,
+
+123
+00:08:08,880 --> 00:08:10,880
+followed by the same TLS certificate
+
+124
+00:08:11,500 --> 00:08:14,000
+running on the root of the Garage domain right here.
+
+125
+00:08:14,620 --> 00:08:18,720
+Now, Garage itself doesn't actually expose a website.
+
+126
+00:08:18,940 --> 00:08:20,900
+So if I show you the fully qualified domain name,
+
+127
+00:08:21,860 --> 00:08:24,180
+you'll notice that we've got a full TLS certificate, right?
+
+128
+00:08:24,320 --> 00:08:26,600
+We've got connection is secure, certificate is valid,
+
+129
+00:08:26,700 --> 00:08:27,960
+it's backed by Let's Encrypt.
+
+130
+00:08:28,800 --> 00:08:32,599
+But Garage is only expecting programmatic API level access.
+
+131
+00:08:32,719 --> 00:08:35,860
+It's not expecting me to go to the website and click around in a UI.
+
+132
+00:08:37,299 --> 00:08:38,620
+That's not what this does.
+
+133
+00:08:39,180 --> 00:08:43,240
+So you need a script to create the buckets and interact with this thing,
+
+134
+00:08:43,860 --> 00:08:48,800
+which is, funnily enough, exactly what is in this Garage init script right here.
+
+135
+00:08:49,120 --> 00:08:52,260
+So there are two or three other files in this repo directory
+
+136
+00:08:52,340 --> 00:08:53,460
+that you need to pay attention to.
+
+137
+00:08:53,960 --> 00:08:56,220
+One is the auth key, and in fact, all three applications,
+
+138
+00:08:56,500 --> 00:09:01,780
+you'll notice have a .env file where you would put your Tailscale auth key you would go to the
+
+139
+00:09:01,900 --> 00:09:09,300
+Tailscale admin console click on settings keys generate an auth key and paste that in to the .env
+
+140
+00:09:09,340 --> 00:09:16,560
+file the compose.yaml we just looked at and garage.toml this is how you configure the actual
+
+141
+00:09:16,920 --> 00:09:22,159
+Garage instance itself just a standard application configuration file you need to put that wherever
+
+142
+00:09:22,180 --> 00:09:28,440
+your compose.yaml is telling Garage to look for it so you can see right here on line 38 mine is
+
+143
+00:09:28,660 --> 00:09:36,260
+telling garage.toml to look in the local directory the PWD the current working directory for that file
+
+144
+00:09:37,020 --> 00:09:41,580
+and then there's an init script right here which basically sets up the S3 buckets that we need
+
+145
+00:09:41,750 --> 00:09:46,920
+for Terraform to be able to talk to Garage now we need to figure out how this is all kind of
+
+146
+00:09:47,200 --> 00:09:52,140
+plumbed together on the back end because there are a few unsurprisingly a few moving parts
+
+147
+00:09:52,260 --> 00:09:56,340
+So in the example Proxmox here, you can see I've got a backend.hcl file.
+
+148
+00:09:56,940 --> 00:10:01,700
+Now you could configure everything here and then commit this file to git in plain text for everybody to see.
+
+149
+00:10:03,040 --> 00:10:03,820
+Not a good idea.
+
+150
+00:10:04,520 --> 00:10:08,280
+So what we have is under settings and then actions and then secrets,
+
+151
+00:10:08,960 --> 00:10:11,620
+we have these variables here, these secrets here.
+
+152
+00:10:12,200 --> 00:10:14,820
+And in here, you've got things like the Garage endpoint,
+
+153
+00:10:15,240 --> 00:10:21,700
+which is that fully qualified domain name that I showed you earlier of garage.velociraptor-noodlefish.ts.net, whatever.
+
+154
+00:10:23,660 --> 00:10:29,040
+then you've got your access key and your secret key and those are your S3 bucket keys in the
+
+155
+00:10:29,040 --> 00:10:34,100
+root of the repo I've included a helpful Justfile and there are a bunch
+
+156
+00:10:34,100 --> 00:10:40,040
+of things in here basically this morphed from me doing it locally to moving my S3 state into
+
+157
+00:10:40,210 --> 00:10:44,800
+Garage so over time I've gone from running things locally like you can see here to running things
+
+158
+00:10:45,000 --> 00:10:50,880
+in Garage remotely so there are a bunch of steps you can follow to init your remote Garage instance
+
+159
+00:10:51,400 --> 00:10:55,040
+none of this is production grade stuff this is just stuff I've been hacking around with
+
+160
+00:10:55,460 --> 00:11:00,540
+to really give you a taste you know of of what's possible when you start putting everything on
+
+161
+00:11:00,560 --> 00:11:06,840
+Tailscale but why don't I show you I'll do just garage-keys and then I think it's S3 host
+
+162
+00:11:07,680 --> 00:11:13,320
+and there you go so I can use these helper scripts to connect to the remote node and get my secrets
+
+163
+00:11:13,600 --> 00:11:20,180
+out without having to know all of the exact syntax and stuff like that obviously that's not
+
+164
+00:11:20,200 --> 00:11:24,240
+production grade secure but I'm sure you can figure out a way to make it more secure than what
+
+165
+00:11:24,240 --> 00:11:30,700
+I have here now um what else do we have to show we have the workflows this is this is the this is
+
+166
+00:11:30,700 --> 00:11:36,460
+the thing I was going to show you these lines here this is where tofu is connecting to the
+
+167
+00:11:36,960 --> 00:11:43,580
+Forgejo secrets backend and injecting these secrets at runtime from the repo level secrets
+
+168
+00:11:43,740 --> 00:11:49,480
+so you don't have to store anything publicly and the same thing goes for the Proxmox API token as
+
+169
+00:11:49,500 --> 00:11:54,780
+well as the garage endpoint the access and the secret key as well and so essentially after all
+
+170
+00:11:54,940 --> 00:12:01,180
+of that is plumbed together and hooked up the payoff is that I can now go into my terraform.tfvars and be like
+
+171
+00:12:01,700 --> 00:12:07,440
+hey bro i want a one control plane node and a one worker node and two and a half minutes later
+
+172
+00:12:09,080 --> 00:12:13,680
+that's going to be reflected in my Proxmox instance as I say there's an awful lot of moving
+
+173
+00:12:13,740 --> 00:12:20,220
+parts to this kind of stuff but you're replacing very complicated cloud services and doing it
+
+174
+00:12:20,560 --> 00:12:25,180
+completely self-hosted and completely offline and locally everything i've just shown you
+
+175
+00:12:25,660 --> 00:12:30,040
+literally everything is running on this single Framework Desktop node in that tiny rack behind
+
+176
+00:12:30,220 --> 00:12:35,140
+me i mean it's a it's a tiny little computer and you don't even need anything near that level in
+
+177
+00:12:35,140 --> 00:12:40,580
+fact look those machines are back already that was really actually very fast and so you can see that
+
+178
+00:12:41,100 --> 00:12:44,320
+just by putting together a few basic building blocks,
+
+179
+00:12:44,810 --> 00:12:49,020
+you can start to replace proprietary cloud services locally
+
+180
+00:12:49,620 --> 00:12:53,280
+with fully offline, fully self-hosted, fully open source,
+
+181
+00:12:54,040 --> 00:12:55,460
+completely privacy respecting.
+
+182
+00:12:56,040 --> 00:12:56,820
+Are you getting the message here?
+
+183
+00:12:56,820 --> 00:12:57,680
+I like this stuff.
+
+184
+00:12:58,400 --> 00:13:02,460
+With a fully privacy respecting solution like Forgejo, like Garage.
+
+185
+00:13:03,160 --> 00:13:06,860
+And the best part is this will keep working until the end of time.
+
+186
+00:13:06,890 --> 00:13:10,180
+It's offline, it's local, there's no business model to feed,
+
+187
+00:13:10,340 --> 00:13:12,860
+It's literally just you and your infrastructure.
+
+188
+00:13:13,250 --> 00:13:14,840
+Now, of course, this wouldn't be the Tailscale channel
+
+189
+00:13:14,910 --> 00:13:16,600
+without a little pluggy, pluggy, plug.
+
+190
+00:13:17,640 --> 00:13:20,600
+That said, you don't have to use Tailscale
+
+191
+00:13:20,710 --> 00:13:22,280
+to connect all of this stuff together.
+
+192
+00:13:22,660 --> 00:13:24,420
+I'm simply showing you that you can.
+
+193
+00:13:25,060 --> 00:13:27,280
+And the reason for that is, like I say,
+
+194
+00:13:27,400 --> 00:13:28,680
+with the runner example earlier,
+
+195
+00:13:28,780 --> 00:13:30,640
+if you have some hardware constraints
+
+196
+00:13:31,340 --> 00:13:33,700
+that you don't have access to a GPU
+
+197
+00:13:34,120 --> 00:13:35,800
+or to some kind of physical device
+
+198
+00:13:36,010 --> 00:13:38,700
+that you're building and running a test suite against,
+
+199
+00:13:38,900 --> 00:13:40,020
+in fact, a few months ago,
+
+200
+00:13:40,540 --> 00:13:45,020
+probably years at this point, I spoke to Gina who builds the OctoPrint project and she uses
+
+201
+00:13:45,140 --> 00:13:52,020
+Tailscale and GitHub Actions to do exactly that. She uses Tailscale to connect the GitHub Actions
+
+202
+00:13:52,080 --> 00:13:57,060
+runner from the cloud to something running on her desk with no further configuration required.
+
+203
+00:13:57,800 --> 00:14:05,520
+So the power of open source people, it is real. Okay, well I hope you found that video interesting.
+
+204
+00:14:06,240 --> 00:14:06,880
+It's one of those ones.
+
+205
+00:14:06,950 --> 00:14:08,840
+There was like tons of work
+
+206
+00:14:08,910 --> 00:14:10,840
+went into figuring this all out on the back end.
+
+207
+00:14:11,520 --> 00:14:12,920
+And I'm sat here recording this video.
+
+208
+00:14:13,060 --> 00:14:14,460
+I'm like, yeah, okay.
+
+209
+00:14:14,560 --> 00:14:16,040
+It's like probably 10 or 15 minutes.
+
+210
+00:14:16,800 --> 00:14:19,560
+I feel like it should be like a four hour Ben-Hur epic,
+
+211
+00:14:20,410 --> 00:14:21,460
+but it isn't.
+
+212
+00:14:21,620 --> 00:14:23,800
+So anyway, I hope you have found some enjoyment.
+
+213
+00:14:24,020 --> 00:14:25,620
+Don't forget everything you need to get started
+
+214
+00:14:25,690 --> 00:14:27,100
+is linked in the description down below.
+
+215
+00:14:27,640 --> 00:14:28,660
+You can come and find me on Discord.
+
+216
+00:14:28,900 --> 00:14:29,880
+I'm at AlexKTZ.
+
+217
+00:14:29,990 --> 00:14:32,420
+I think it's discord.gg slash tailscale.
+
+218
+00:14:33,360 --> 00:14:34,780
+Come and ask us questions about CI,
+
+219
+00:14:34,980 --> 00:14:40,180
+stuff like that we love to talk to you guys so until next time thank you so much for watching I've been Alex
+
+220
+00:14:40,520 --> 00:14:41,020
+from Tailscale

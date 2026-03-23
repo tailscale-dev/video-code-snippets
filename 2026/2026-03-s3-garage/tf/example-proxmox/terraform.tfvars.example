@@ -1,0 +1,29 @@
+proxmox_endpoint = "https://fwd.funny-name.ts.net"
+proxmox_insecure = false
+proxmox_node     = "fwd"
+# proxmox_api_token — set via PROXMOX_API_TOKEN repo secret (TF_VAR_proxmox_api_token in CI)
+
+storage        = "local-lvm"
+network_bridge = "vmbr0"
+
+# Upload the Talos ISO to Proxmox first, then reference it here
+# Download from: https://github.com/siderolabs/talos/releases
+talos_iso = "local:iso/talos-1.12.4-metal-amd64.iso"
+
+cluster_name = "k8s"
+vm_id_base   = 3000
+cp_count     = 1
+worker_count = 1
+
+control_plane = {
+  cores  = 2
+  memory = 4096
+  disk   = 32
+}
+
+worker = {
+  cores  = 4
+  memory = 8192
+  disk   = 64
+}
+
