@@ -47,8 +47,10 @@ services:
         target: /cfg/config.conf
     volumes:
       - copyparty-data:/data
+      - copyparty-state:/cfg/copyparty
     restart: unless-stopped
 
 volumes:
   copyparty-ts-state:
+  copyparty-state:
   copyparty-data:
