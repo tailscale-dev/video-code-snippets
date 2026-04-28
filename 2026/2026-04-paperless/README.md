@@ -1,0 +1,1 @@
+These docker compose examples accompany a [blog post](https://tailscale.com/blog/paperless-ngx-local-ai-document-search) about setting up Paperless-ngx. The `docker-compose.yml` file is Paperless, paperless-ai, gotenberg, and tika. `docker-compose.yml-noai` omits paperless-ai (rename it to remove `-noai` to use it).
