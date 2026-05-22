@@ -12,7 +12,7 @@ services:
     container_name: jellyfin-ts
     hostname: jellyfin
     environment:
-      - "TS_AUTHKEY=tskey-auth-kSt4ZP6GB111CNTRL-rBtTYFjRFDJ98XcdkGvmDJeLTzu6TUiz"
+      - "TS_AUTHKEY=${TS_AUTHKEY}"
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_SERVE_CONFIG=/config/serve.json
     volumes:
