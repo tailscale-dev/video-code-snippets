@@ -1,0 +1,40 @@
+configs:
+  ts-serve:
+    content: |
+      {"TCP":{"443":{"HTTPS":true}},
+      "Web":{"$${TS_CERT_DOMAIN}:443":
+          {"Handlers":{"/":
+          {"Proxy":"http://127.0.0.1:8096"}}}},
+      "AllowFunnel":{"$${TS_CERT_DOMAIN}:443":false}}
+services:
+  jellyfin-ts:
+    image: tailscale/tailscale:latest
+    container_name: jellyfin-ts
+    hostname: jellyfin
+    environment:
+      - "TS_AUTHKEY=tskey-auth-kSt4ZP6GB111CNTRL-rBtTYFjRFDJ98XcdkGvmDJeLTzu6TUiz"
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_SERVE_CONFIG=/config/serve.json
+    volumes:
+      - "./ts-state:/var/lib/tailscale"
+    configs:
+      - source: ts-serve
+        target: /config/serve.json
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    restart: unless-stopped
+
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    network_mode: service:jellyfin-ts
+    depends_on:
+      - jellyfin-ts
+    volumes:
+      - "/mnt/appdata/jellyfin/config:/config"
+      - "/mnt/appdata/jellyfin/cache:/cache"
+      - "/mnt/media:/media:ro"
+    restart: unless-stopped

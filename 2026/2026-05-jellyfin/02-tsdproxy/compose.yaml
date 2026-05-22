@@ -1,0 +1,33 @@
+services:
+  tsdproxy:
+    image: almeidapaulopt/tsdproxy:2
+    container_name: tsdproxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - tsdproxy-data:/data
+      - "./config:/config"
+    ports:
+      - "8080:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    expose:
+      - "8096"
+    labels:
+      tsdproxy.enable: "true"
+      tsdproxy.name: "jellyfin"
+      tsdproxy.port.1: "443/https:8096/http"
+      tsdproxy.authkey: "${TS_AUTHKEY}"
+      tsdproxy.dash.label: "Jellyfin"
+    volumes:
+      - "/mnt/appdata/jellyfin/config:/config"
+      - "/mnt/appdata/jellyfin/cache:/cache"
+      - "/mnt/media:/media:ro"
+    restart: unless-stopped
+
+volumes:
+  tsdproxy-data:

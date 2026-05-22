@@ -1,0 +1,44 @@
+configs:
+  ts-serve:
+    content: |
+      {"TCP":{"443":{"HTTPS":true}},
+      "Web":{"$${TS_CERT_DOMAIN}:443":
+          {"Handlers":{"/":
+          {"Proxy":"http://127.0.0.1:5690"}}}},
+      "AllowFunnel":{"$${TS_CERT_DOMAIN}:443":false}}
+
+services:
+  wizarr-ts:
+    image: tailscale/tailscale:latest
+    container_name: wizarr-ts
+    hostname: wizarr
+    environment:
+      - "TS_AUTHKEY=${TS_AUTHKEY}"
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_SERVE_CONFIG=/config/serve.json
+    volumes:
+      - "./ts-state:/var/lib/tailscale"
+    configs:
+      - source: ts-serve
+        target: /config/serve.json
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    restart: unless-stopped
+
+  wizarr:
+    image: ghcr.io/wizarrrr/wizarr:latest
+    container_name: wizarr
+    network_mode: service:wizarr-ts
+    depends_on:
+      - wizarr-ts
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/New_York
+      - DISABLE_BUILTIN_AUTH=false
+    volumes:
+      - "/mnt/appdata/wizarr:/data"
+    restart: unless-stopped
