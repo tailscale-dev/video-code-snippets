@@ -1,0 +1,30 @@
+services:
+  docktail:
+    image: ghcr.io/marvinvr/docktail:latest
+    container_name: docktail-basic
+    environment:
+      - DEFAULT_SERVICE_TAGS=tag:docktail-service
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/tailscale:/var/run/tailscale
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:latest
+    container_name: basic-nginx
+    labels:
+      - docktail.service.enable=true
+      - docktail.service.name=nginx
+      - docktail.service.port=80
+      - docktail.service.service-port=443
+    restart: unless-stopped
+
+  it-tools:
+    image: ghcr.io/corentinth/it-tools:latest
+    container_name: basic-it-tools
+    labels:
+      - docktail.service.enable=true
+      - docktail.service.name=tools
+      - docktail.service.port=80
+      - docktail.service.service-port=443
+    restart: unless-stopped

@@ -1,0 +1,81 @@
+services:
+  socket-proxy:
+    image: lscr.io/linuxserver/socket-proxy:latest
+    container_name: docktail-socket-proxy
+    environment:
+      - CONTAINERS=1
+      - EVENTS=1
+      - INFO=1
+      - NETWORKS=1
+      - POST=0
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - docker-api
+    read_only: true
+    tmpfs:
+      - /run
+    restart: unless-stopped
+
+  docktail:
+    image: ghcr.io/marvinvr/docktail:latest
+    container_name: docktail-socketproxy
+    depends_on:
+      - socket-proxy
+    environment:
+      - DOCKER_HOST=tcp://socket-proxy:2375
+      - TAILSCALE_OAUTH_CLIENT_ID=${TAILSCALE_OAUTH_CLIENT_ID}
+      - TAILSCALE_OAUTH_CLIENT_SECRET=${TAILSCALE_OAUTH_CLIENT_SECRET}
+      - DEFAULT_SERVICE_TAGS=tag:docktail-service
+    volumes:
+      - /var/run/tailscale:/var/run/tailscale
+    networks:
+      - default
+      - docker-api
+    restart: unless-stopped
+
+  it-tools:
+    image: ghcr.io/corentinth/it-tools:latest
+    container_name: socketproxy-it-tools
+    labels:
+      - docktail.service.enable=true
+      - docktail.service.name=tools
+      - docktail.service.port=80
+      - docktail.service.service-port=443
+    restart: unless-stopped
+
+  stirling-pdf:
+    image: stirlingtools/stirling-pdf:latest
+    container_name: socketproxy-stirling-pdf
+    labels:
+      - docktail.service.enable=true
+      - docktail.service.name=pdf
+      - docktail.service.port=8080
+      - docktail.service.service-port=443
+    volumes:
+      - stirling-data:/configs
+    restart: unless-stopped
+
+  filebrowser:
+    image: filebrowser/filebrowser:s6
+    container_name: socketproxy-filebrowser
+    labels:
+      - docktail.service.enable=true
+      - docktail.service.name=files
+      - docktail.service.port=80
+      - docktail.service.service-port=443
+    volumes:
+      - ./files:/srv
+      - filebrowser-db:/database
+      - filebrowser-config:/config
+    restart: unless-stopped
+
+networks:
+  docker-api:
+    internal: true
+
+volumes:
+  stirling-data:
+  filebrowser-db:
+  filebrowser-config:
+

@@ -1,0 +1,7 @@
+{
+  "tagOwners": {
+    "tag:docktail-host": ["autogroup:admin"],
+    "tag:docktail-service": ["tag:docktail-host"]
+  }
+}
+

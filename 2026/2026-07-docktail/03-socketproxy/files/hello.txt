@@ -1,0 +1,2 @@
+This mirrors the File Browser demo data from the earlier DockTail examples.
+

@@ -1,0 +1,12 @@
+{
+  "tagOwners": {
+    "tag:docktail-host": ["autogroup:admin"],
+    "tag:docktail-service": ["tag:docktail-host"]
+  },
+  "autoApprovers": {
+    "services": {
+      // Auto-approve DockTail services advertised by the DockTail host.
+      "tag:docktail-service": ["tag:docktail-host"]
+    }
+  }
+}

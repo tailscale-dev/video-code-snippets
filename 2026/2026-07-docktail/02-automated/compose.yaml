@@ -1,0 +1,54 @@
+services:
+  docktail:
+    image: ghcr.io/marvinvr/docktail:latest
+    container_name: docktail-automated
+    environment:
+      - TAILSCALE_OAUTH_CLIENT_ID=${TAILSCALE_OAUTH_CLIENT_ID}
+      - TAILSCALE_OAUTH_CLIENT_SECRET=${TAILSCALE_OAUTH_CLIENT_SECRET}
+      - DEFAULT_SERVICE_TAGS=tag:docktail-service
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/run/tailscale:/var/run/tailscale
+    restart: unless-stopped
+
+  it-tools:
+    image: ghcr.io/corentinth/it-tools:latest
+    container_name: automated-it-tools
+    labels:
+      - docktail.service.enable=true
+      - docktail.service.name=tools
+      - docktail.service.port=80
+      - docktail.service.service-port=443
+    restart: unless-stopped
+
+  stirling-pdf:
+    image: stirlingtools/stirling-pdf:latest
+    container_name: automated-stirling-pdf
+    labels:
+      - docktail.service.enable=true
+      - docktail.service.name=pdf
+      - docktail.service.port=8080
+      - docktail.service.service-port=443
+    volumes:
+      - stirling-data:/configs
+    restart: unless-stopped
+
+  filebrowser:
+    image: filebrowser/filebrowser:s6
+    container_name: automated-filebrowser
+    labels:
+      - docktail.service.enable=true
+      - docktail.service.name=files
+      - docktail.service.port=80
+      - docktail.service.service-port=443
+    volumes:
+      - ./files:/srv
+      - filebrowser-db:/database
+      - filebrowser-config:/config
+    restart: unless-stopped
+
+volumes:
+  stirling-data:
+  filebrowser-db:
+  filebrowser-config:
+
